@@ -4,6 +4,11 @@ twit    = require 'twit'
 wget    = require 'wgetjs'
 
 try
+  nosql = require 'nosql'
+catch
+  nosql = null
+
+try
   kue   = require 'kue'
 catch
   kue   = null
@@ -22,8 +27,23 @@ dir = config.dest ? './download/'
 
 # download job
 download = (data)->
-  console.log data
-  wget { url: data.url, dest: data.dest }
+  opt = { url: data.url, dest: data.dest }
+  if db
+    db.count (doc)->
+      doc.url == opt.url
+    , (count)->
+      if count == 0
+        console.log opt.url
+        wget opt
+        db.insert opt
+        db.update()
+  else
+    wget opt
+
+
+db = null
+if nosql
+  db = nosql.load config.db ? './twdl'
 
 
 # using job queue if installed
@@ -31,7 +51,7 @@ if kue
   # kue.app.listen 3000
 
   jobs = kue.createQueue()
-  jobs.promote 100
+  jobs.promote 300000
 
   jobs.process 'download', (job, done)->
     download job.data
@@ -56,6 +76,7 @@ stream.on 'tweet', (tweet)->
     if name and url
       data = { url: url, dest: Path.join(dir, name) }
       if kue
+        #console.log 'job: ' + url
         jobs.create('download', data).save()
       else
         download data

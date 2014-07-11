@@ -10,5 +10,6 @@
     "param": {
     }
   },
+  "db": "./twdl",
   "dest": "./download/"
 }

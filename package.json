@@ -11,6 +11,7 @@
     "wgetjs": "^0.3.3"
   },
   "optionalDependencies": {
+    "nosql": "^2.0.7",
     "kue": "^0.7.8"
   }
 }
