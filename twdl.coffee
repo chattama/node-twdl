@@ -1,7 +1,10 @@
+fs      = require 'fs'
 Path    = require 'path'
 URL     = require 'url'
 twit    = require 'twit'
 wget    = require 'wgetjs'
+mkdirp  = require 'mkdirp'
+df      = require 'dateformat'
 
 try
   nosql = require 'nosql'
@@ -24,10 +27,15 @@ s.param = s.param ? {}
 
 dir = config.dest ? './download/'
 
+grpdate = config.group_by_date ? false
+
 
 # download job
 download = (data)->
   opt = { url: data.url, dest: data.dest }
+  dirdl = Path.dirname(opt.dest)
+  if not fs.existsSync(dirdl)
+    mkdirp.sync dirdl
   if db
     db.count (doc)->
       doc.url == opt.url
@@ -74,9 +82,15 @@ stream.on 'tweet', (tweet)->
       name = Path.basename URL.parse(name).pathname
 
     if name and url
-      data = { url: url, dest: Path.join(dir, name) }
+
+      if grpdate
+        now = new Date()
+        datedir = df now, 'yyyy-mm-dd'
+        data = { url: url, dest: Path.join(dir, datedir, name) }
+      else
+        data = { url: url, dest: Path.join(dir, name) }
+
       if kue
-        #console.log 'job: ' + url
         jobs.create('download', data).save()
       else
         download data
