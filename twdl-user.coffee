@@ -134,13 +134,13 @@ ee.on 'wait_reset', (reset, param)->
 
 ee.on 'end', ()->
   end_count++
-  if (screen_name_list.length-1) == end_count
+  if screen_name_list.length == end_count
     process.exit(0)
 
 
 ee.on 'err', (err)->
   console.error err
-  if (screen_name_list.length-1) == end_count
+  if screen_name_list.length == end_count
     process.exit(1)
 
 
